@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# JAVA path
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
+export PATH=$JAVA_HOME/bin:$PATH
+
+# aws access variables 
+aws_access_key_id=ASIAT7ZCEPHYCNOTY7YR
+aws_secret_access_key=Vo0dSFKbEOv7xA2HeeyWOxQ22aduYTskpfPQ67sC
+aws_session_token=IQoJb3JpZ2luX2VjEEEaCXVzLXdlc3QtMiJHMEUCIQCBMfDT9xixUF/lTn6vCSfiXyXv/DiaZc25Jh9098UVBwIgUdJpec44fQZTEq78ZF3mucqcwpYNVwUiTLH/AlP4lQgqyAII6v//////////ARABGgwyNzQ0MTI2MzI1NjAiDI2Hdj3f+qvSesl/tyqcAtDNxZILpcM4lPxNzjW1BRG00hk+g9ZXGhI4fkAIEFRP5/BbXuysXT+soUfdg25Zev1SFLTxTQURVJZ+hXPcv/+0+v5DGS8m5q5P+kUFsL0r4uMHsJe0QrAGP8vWaw9Wo4jOv9+c0ri7aBjxqilISDAjYBEy8Xor6Tzhp1bYkO1y18KAyYxvAvcUfeoRNcsulD0e7FWMWmKcMpd/zHxtnjTBXCuqGzbMDXKIkd++j30JR4Cx5Qx5PjSNXMOrd0mf6xlxiCGUSZTDMZeTS5vquy5Ev13YjfSxnO9cgwfekTn7l/zqPyJ/rgbq8+7HdRhhOxSOZCcNTuVGYa1lWLvva64tg1qdtL6e3FQm4l9BqHxBPugdwyx1Kvs8I3s1MKOKjMEGOp0B2xDlPz0bSVUyIzWesLrS7g2MBpviNBKJ92JCtz3jhbuYhuIh+vN1AjvAyCHfHXFJhezolUYsMkzlxZ7sXXZlgAeZjwxnj9Pi56GCMOnkInLgJ/3ih/UUyVqqkk8pqyUXTS6pf1B2nY0/gdxXSn4pYvMKhI8pHLz4Q3FGh6vZjmYLORss6z2LQuHAGlrV8Ls0JM5vyStoubfWdYxA5w==
+
+# docker access variables
+yourDockerUsername=simons36
+yourDockerPassword=dckr_pat_tm0faZvK84dYdwwOpzaFmJETGKc
+
+# exporting all variables to be used by next scripts
+export AWS_ACCESS_KEY_ID=$aws_access_key_id
+export AWS_SECRET_ACCESS_KEY=$aws_secret_access_key
+export AWS_SESSION_TOKEN=$aws_session_token
+export DockerUsername=$yourDockerUsername
+export DockerPassword=$yourDockerPassword
+
+
