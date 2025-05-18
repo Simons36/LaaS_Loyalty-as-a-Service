@@ -14,6 +14,7 @@ echo "Installing Zookeeper..."
 cd ~
 wget https://dlcdn.apache.org/zookeeper/zookeeper-3.9.3/apache-zookeeper-3.9.3-bin.tar.gz
 tar -zxf apache-zookeeper-3.9.3-bin.tar.gz
+sudo rm -rf /usr/local/zookeeper
 sudo mv apache-zookeeper-3.9.3-bin /usr/local/zookeeper
 sudo mkdir -p /var/lib/zookeeper
 
@@ -41,6 +42,6 @@ sudo sed -i "s|#listeners=PLAINTEXT://:9092|listeners=PLAINTEXT://localhost:9092
 
 # Start Kafka (non-blocking)
 echo "Starting Kafka..."
-/usr/local/kafka/bin/kafka-server-start.sh -daemon /usr/local/kafka/config/server.properties
+sudo /usr/local/kafka/bin/kafka-server-start.sh -daemon /usr/local/kafka/config/server.properties
 
 echo "Kafka & Zookeeper installed and running!"
