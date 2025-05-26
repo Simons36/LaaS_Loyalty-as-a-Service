@@ -29,15 +29,42 @@
   ```
   CREATE TABLE SelledProductByCustomerID (
     id SERIAL PRIMARY KEY,
-    customerID VARCHAR(255) NOT NULL,
+    customer_ID VARCHAR(255) NOT NULL,
     product VARCHAR(255) NOT NULL,
     number_of_sales INT NOT NULL,
     total_revenue DECIMAL(10, 2) NOT NULL
   );
   ```
   - Produce to: `selled_product_by_location` Key: `location`
+  ```
+  CREATE TABLE SelledProductByLocation (
+    id SERIAL PRIMARY KEY,
+    location VARCHAR(255),
+    product VARCHAR(255),
+    number_of_sales INT NOT NULL,
+    total_revenue DECIMAL (10, 2) NOT NULL
+  );
+  ```
   - Produce to: `selled_product_by_loyaltyCardID` Key: `loyaltyCardID`
+  ```
+  CREATE TABLE SelledProductByLoyaltyCardID (
+    id SERIAL PRIMARY KEY,
+    loyaltyCard_ID VARCHAR(255),
+    product VARCHAR(255),
+    number_of_sales INT NOT NULL,
+    total_revenue DECIMAL (10, 2) NOT NULL
+  );
+  ```
   - Produce to: `selled_product_shopID` Key: `shopID`
+  ```
+  CREATE TABLE SelledProductByShopID (
+    id SERIAL PRIMARY KEY,
+    shop_ID VARCHAR(255),
+    product VARCHAR(255),
+    number_of_sales INT NOT NULL,
+    total_revenue DECIMAL (10, 2) NOT NULL
+  );
+  ```
 
 ## Messages JSONs
 

@@ -85,8 +85,8 @@ public class CrossSellingRecomendationResource {
                                 .onItem().transform(uri -> Response.created(uri).build());
         
         // Send to kafka
-        String topic = crossSellingRecomendation.getOriginShop() + "-" + crossSellingRecomendation.getDestinationShop();
-        String key = "placeholder";
+        String topic = "cross_selling_recomendations";
+        String key = crossSellingRecomendation.getOriginShop();
         String message = crossSellingRecomendation.toJsonString();
 
         DynamicTopicProducer.send(topic, key, message);

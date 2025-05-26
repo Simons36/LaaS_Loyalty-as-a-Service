@@ -77,8 +77,8 @@ public class DiscountCouponResource {
 
         // Send message to Kafka topic
 
-        String topic = String.valueOf(discountCoupon.getLoyaltyCard_id());
-        String key = "placeholder";
+        String topic = "discount_coupons";
+        String key = String.valueOf(discountCoupon.getLoyaltyCard_id());
         String message = discountCoupon.toJsonString();
 
         DynamicTopicProducer.send(topic, key, message);
