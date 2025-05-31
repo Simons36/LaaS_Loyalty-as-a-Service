@@ -25,6 +25,11 @@ public class Shop {
 	        this.id = id;
 	        this.name = name;
 	    }
+
+		public Shop(String name_R, String location_R) {
+			name = name_R;
+			location = location_R;
+		}
 		
 	    public Shop(Long iD, String name_R , String location_R ) {
 			id = iD;
