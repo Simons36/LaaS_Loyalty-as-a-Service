@@ -25,6 +25,12 @@ public class Customer {
 	        this.id = id;
 	        this.name = name;
 	    }
+
+		public Customer(String name_R, Long FiscalNumber_R, String location_R) {
+			FiscalNumber = FiscalNumber_R;
+			name = name_R;
+			location = location_R;
+		}
 		
 	    public Customer(Long iD, String name_R , String location_R , Long FiscalNumber_R ) {
 			FiscalNumber = FiscalNumber_R;
