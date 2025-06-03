@@ -24,11 +24,11 @@ cd ..
 
 # # #Terraform - Quarkus Micro services changing the configuration of the DB connection, recompiling and packaging
 cd microservices/shop/src/main/resources
-sed -i "/quarkus.datasource.reactive.url/d" application.properties
+sed -i "/%prod.quarkus.datasource.reactive.url/d" application.properties
 sed -i "/quarkus.container-image.group/d" application.properties
 sed -i "/kafka.bootstrap.servers/d" application.properties
 echo "quarkus.container-image.group=$DockerUsername" >> application.properties                                        
-echo "quarkus.datasource.reactive.url=mysql://$addressDB:3306/quarkus_test_all_operations" >> application.properties                                        
+echo "%prod.quarkus.datasource.reactive.url=mysql://$addressDB:3306/quarkus_test_all_operations" >> application.properties                                        
 echo "kafka.bootstrap.servers=$addresskafka:9092" >> application.properties
 cd ../../..
 DockerImage="$(grep -m 1 "<artifactId>" pom.xml|sed "s/<artifactId>//g"|sed "s/<\/artifactId>//g" |sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g")"
@@ -53,11 +53,11 @@ cd ../..
 
 # # #Terraform - Quarkus Micro services changing the configuration of the DB connection, recompiling and packaging
 cd microservices/customer/src/main/resources
-sed -i "/quarkus.datasource.reactive.url/d" application.properties
+sed -i "/%prod.quarkus.datasource.reactive.url/d" application.properties
 sed -i "/quarkus.container-image.group/d" application.properties
 sed -i "/kafka.bootstrap.servers/d" application.properties
 echo "quarkus.container-image.group=$DockerUsername" >> application.properties                                        
-echo "quarkus.datasource.reactive.url=mysql://$addressDB:3306/quarkus_test_all_operations" >> application.properties                                        
+echo "%prod.quarkus.datasource.reactive.url=mysql://$addressDB:3306/quarkus_test_all_operations" >> application.properties                                        
 echo "kafka.bootstrap.servers=$addresskafka:9092" >> application.properties
 cd ../../..
 DockerImage="$(grep -m 1 "<artifactId>" pom.xml|sed "s/<artifactId>//g"|sed "s/<\/artifactId>//g" |sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g")"
@@ -195,7 +195,7 @@ terraform apply -auto-approve
 cd ../..
 
 
-# # #Terraform - Quarkus Micro services changing the configuration of the DB connection, recompiling and packaging
+# #Terraform - Quarkus Micro services changing the configuration of the DB connection, recompiling and packaging
 cd microservices/selled_product/src/main/resources
 sed -i "/quarkus.datasource.reactive.url/d" application.properties
 sed -i "/quarkus.container-image.group/d" application.properties
