@@ -33,9 +33,9 @@ terraform destroy -auto-approve
 cd ../..
 
 # #Terraform - Quarkus selled_product
-cd Quarkus-Terraform/selled_product
-terraform destroy -auto-approve
-cd ../..
+# cd Quarkus-Terraform/selled_product
+# terraform destroy -auto-approve
+# cd ../..
 
 # #Terraform - Ollama
 cd Ollama-Terraform
