@@ -11,7 +11,7 @@ provider "aws" {
  region = "us-east-1"
 }
 resource "aws_instance" "exampleOllamaConfiguration" {
- ami = "ami-045269a1f5c90a6a0"
+ ami = "ami-02457590d33d576c3"
  instance_type = "t2.medium"
  count = 1
  vpc_security_group_ids = [aws_security_group.instance.id]

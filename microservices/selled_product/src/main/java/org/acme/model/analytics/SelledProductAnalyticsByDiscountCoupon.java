@@ -3,8 +3,6 @@ package org.acme.model.analytics;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.mysqlclient.MySQLPool;
@@ -12,76 +10,109 @@ import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowSet;
 import io.vertx.mutiny.sqlclient.Tuple;
 
-public class SelledProductAnalyticsByDiscountCoupon extends SelledProductAnalytics{
-    
-    private Integer purhcasesThatUsedCoupon;
+public class SelledProductAnalyticsByDiscountCoupon extends SelledProductAnalytics {
 
-    private Float totalDiscounted;
+    private int totalCouponsUsed;
+    private int couponsUsedOnProduct;
+    private float totalValueDiscounted;
+    private float valueDiscountedOnProduct;
 
     public SelledProductAnalyticsByDiscountCoupon() {
     }
 
-    public SelledProductAnalyticsByDiscountCoupon(Long id, String product, LocalDateTime calculatedAt, int numberOfTotalPurchases, int numberOfPurchasesIncludingProduct, Float totalRevenue, String description, Integer purhcasesThatUsedCoupon, Float totalDiscounted) {
-        super(id, product, calculatedAt, numberOfTotalPurchases, numberOfPurchasesIncludingProduct, totalRevenue, description);
-        this.purhcasesThatUsedCoupon = purhcasesThatUsedCoupon;
-        this.totalDiscounted = totalDiscounted;
+    public SelledProductAnalyticsByDiscountCoupon(Long id, LocalDateTime calculatedAt, String product,
+            int numberOfTotalPurchases, int numberOfPurchasesIncludingProduct,
+            int totalCouponsUsed, int couponsUsedOnProduct,
+            float totalValueDiscounted, float valueDiscountedOnProduct,
+            String description) {
+        super(id, product, calculatedAt, numberOfTotalPurchases, numberOfPurchasesIncludingProduct,
+                totalValueDiscounted, description); // You can decide what to use in the totalRevenue field (I used
+                                                    // totalValueDiscounted here)
+        this.totalCouponsUsed = totalCouponsUsed;
+        this.couponsUsedOnProduct = couponsUsedOnProduct;
+        this.totalValueDiscounted = totalValueDiscounted;
+        this.valueDiscountedOnProduct = valueDiscountedOnProduct;
     }
 
-    public Integer getPurhcasesThatUsedCoupon() {
-        return purhcasesThatUsedCoupon;
+    public int getTotalCouponsUsed() {
+        return totalCouponsUsed;
     }
 
-    public void setPurhcasesThatUsedCoupon(Integer purhcasesThatUsedCoupon) {
-        this.purhcasesThatUsedCoupon = purhcasesThatUsedCoupon;
+    public void setTotalCouponsUsed(int totalCouponsUsed) {
+        this.totalCouponsUsed = totalCouponsUsed;
     }
 
-    public Float getTotalDiscounted() {
-        return totalDiscounted;
+    public int getCouponsUsedOnProduct() {
+        return couponsUsedOnProduct;
     }
 
-    public void setTotalDiscounted(Float totalDiscounted) {
-        this.totalDiscounted = totalDiscounted;
+    public void setCouponsUsedOnProduct(int couponsUsedOnProduct) {
+        this.couponsUsedOnProduct = couponsUsedOnProduct;
+    }
+
+    public float getTotalValueDiscounted() {
+        return totalValueDiscounted;
+    }
+
+    public void setTotalValueDiscounted(float totalValueDiscounted) {
+        this.totalValueDiscounted = totalValueDiscounted;
+    }
+
+    public float getValueDiscountedOnProduct() {
+        return valueDiscountedOnProduct;
+    }
+
+    public void setValueDiscountedOnProduct(float valueDiscountedOnProduct) {
+        this.valueDiscountedOnProduct = valueDiscountedOnProduct;
     }
 
     private static SelledProductAnalyticsByDiscountCoupon from(Row row) {
         return new SelledProductAnalyticsByDiscountCoupon(
                 row.getLong("id"),
-                row.getString("product"),
                 row.getLocalDateTime("calculated_at"),
+                row.getString("product"),
                 row.getInteger("number_of_total_purchases"),
-                row.getInteger("number_of_purchases_including_product"),
-                row.getFloat("total_revenue"),
-                row.getString("description"),
-                row.getInteger("purhcases_that_used_coupon"),
-                row.getFloat("total_discounted")
-        );
+                row.getInteger("number_of_total_purchases_including_product"),
+                row.getInteger("total_coupons_used"),
+                row.getInteger("coupons_used_on_product"),
+                row.getFloat("total_value_discounted"),
+                row.getFloat("value_discounted_on_product"),
+                row.getString("description"));
     }
 
-    public static Multi<SelledProductAnalyticsByDiscountCoupon> findAll(MySQLPool client){
+    public static Multi<SelledProductAnalyticsByDiscountCoupon> findAll(MySQLPool client) {
         return client.preparedQuery("SELECT * FROM SelledProductByDiscountCoupon ORDER BY id ASC")
                 .execute()
                 .onItem().transformToMulti(set -> Multi.createFrom().iterable(set))
                 .onItem().transform(SelledProductAnalyticsByDiscountCoupon::from);
     }
 
-    public static Uni<SelledProductAnalyticsByDiscountCoupon> findByID(MySQLPool client, Long id){
+    public static Uni<SelledProductAnalyticsByDiscountCoupon> findByID(MySQLPool client, Long id) {
         return client.preparedQuery("SELECT * FROM SelledProductByDiscountCoupon WHERE id = ?")
                 .execute(Tuple.of(id))
                 .onItem().transform(RowSet::iterator)
                 .onItem().transform(iterator -> iterator.hasNext() ? from(iterator.next()) : null);
     }
 
-    public Uni<Boolean> save(MySQLPool client, String calculatedAt, int numberOfTotalPurchases, String product, int numberOfPurchasesIncludingProduct, int couponsUsed, Float discountedValue, String description) {
+    public Uni<Boolean> save(MySQLPool client) {
         Tuple tuple = Tuple.tuple()
-                .addString(calculatedAt)
-                .addInteger(numberOfTotalPurchases)
-                .addString(product)
-                .addInteger(numberOfPurchasesIncludingProduct)
-                .addInteger(couponsUsed)
-                .addFloat(discountedValue)
-                .addString(description);
+                .addLocalDateTime(this.getCalculatedAt())
+                .addString(this.getProduct())
+                .addInteger(this.getNumberOfTotalPurchases())
+                .addInteger(this.getNumberOfTotalPurchasesIncludingProduct())
+                .addInteger(this.getTotalCouponsUsed())
+                .addInteger(this.getCouponsUsedOnProduct())
+                .addFloat(this.getTotalValueDiscounted())
+                .addFloat(this.getValueDiscountedOnProduct())
+                .addString(this.getDescription());
 
-        return client.preparedQuery("INSERT INTO SelledProductByDiscountCoupon (calculated_at, number_of_total_purchases, product, number_of_purchases_including_product, coupons_used, discounted_value, description) VALUES (?, ?, ?, ?, ?, ?, ?)")
+        return client.preparedQuery("INSERT INTO SelledProductByDiscountCoupon (" +
+                "calculated_at, product, " +
+                "number_of_total_purchases, number_of_total_purchases_including_product, " +
+                "total_coupons_used, coupons_used_on_product, " +
+                "total_value_discounted, value_discounted_on_product, " +
+                "description" +
+                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
                 .execute(tuple)
                 .onItem().transform(pgRowSet -> pgRowSet.rowCount() == 1);
     }
@@ -91,28 +122,45 @@ public class SelledProductAnalyticsByDiscountCoupon extends SelledProductAnalyti
             return Uni.createFrom().item(false);
         }
 
-        // Prepare a batch of tuples for all analytics
         List<Tuple> tuples = analyticsList.stream().map(analytics -> Tuple.tuple()
-                .addString(analytics.getCalculatedAt().toString())
-                .addInteger(analytics.getNumberOfTotalPurchases())
+                .addLocalDateTime(analytics.getCalculatedAt())
                 .addString(analytics.getProduct())
-                .addInteger(analytics.getNumberOfPurchasesIncludingProduct())
-                .addInteger(analytics.getPurhcasesThatUsedCoupon())
-                .addFloat(analytics.getTotalDiscounted())
-                .addString(analytics.getDescription())
-        ).toList();
+                .addInteger(analytics.getNumberOfTotalPurchases())
+                .addInteger(analytics.getNumberOfTotalPurchasesIncludingProduct())
+                .addInteger(analytics.getTotalCouponsUsed())
+                .addInteger(analytics.getCouponsUsedOnProduct())
+                .addFloat(analytics.getTotalValueDiscounted())
+                .addFloat(analytics.getValueDiscountedOnProduct())
+                .addString(analytics.getDescription())).toList();
 
-        return client.preparedQuery(
-                "INSERT INTO SelledProductByDiscountCoupon (calculated_at, number_of_total_purchases, product, number_of_purchases_including_product, coupons_used, discounted_value, description) VALUES (?, ?, ?, ?, ?, ?, ?)"
-            )
-            .executeBatch(tuples)
-            .onItem().transform(pgRowSet -> pgRowSet.rowCount() == analyticsList.size());
+        return client.preparedQuery("INSERT INTO SelledProductByDiscountCoupon (" +
+                "calculated_at, product, " +
+                "number_of_total_purchases, number_of_total_purchases_including_product, " +
+                "total_coupons_used, coupons_used_on_product, " +
+                "total_value_discounted, value_discounted_on_product, " +
+                "description" +
+                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+                .executeBatch(tuples)
+                .onItem().transform(pgRowSet -> {
+                    System.out.println("[DEBUG] saveAll(): batch executed for " + tuples.size() + " tuples.");
+                    return true; // assume batch is OK if no exception was thrown
+                });
+
     }
-
 
     @Override
     public String toString() {
-        return "SelledProductAnalyticsByDiscountCoupon [purhcasesThatUsedCoupon=" + purhcasesThatUsedCoupon + ", totalDiscounted=" + totalDiscounted + ", id=" + getId() + ", product=" + getProduct() + ", calculatedAt=" + getCalculatedAt() + ", numberOfTotalPurchases=" + getNumberOfTotalPurchases() + ", numberOfPurchasesIncludingProduct=" + getNumberOfPurchasesIncludingProduct() + ", totalRevenue=" + getTotalRevenue() + ", description=" + getDescription() + "]";
+        return "SelledProductAnalyticsByDiscountCoupon{" +
+                "id=" + getId() +
+                ", product='" + getProduct() + '\'' +
+                ", calculatedAt=" + getCalculatedAt() +
+                ", numberOfTotalPurchases=" + getNumberOfTotalPurchases() +
+                ", numberOfPurchasesIncludingProduct=" + getNumberOfTotalPurchasesIncludingProduct() +
+                ", totalCouponsUsed=" + totalCouponsUsed +
+                ", couponsUsedOnProduct=" + couponsUsedOnProduct +
+                ", totalValueDiscounted=" + totalValueDiscounted +
+                ", valueDiscountedOnProduct=" + valueDiscountedOnProduct +
+                ", description='" + getDescription() + '\'' +
+                '}';
     }
-
 }

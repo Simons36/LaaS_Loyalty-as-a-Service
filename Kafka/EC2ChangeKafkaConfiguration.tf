@@ -41,7 +41,7 @@ resource "aws_instance" "exampleKafkaConfiguration" {
 }
 
 output "publicdnslist" {
- value = "${formatlist("%v", aws_instance.exampleCluster.*.public_dns)}"
+ value = "${formatlist("%v", aws_instance.exampleKafkaConfiguration.*.public_dns)}"
 }
 
 resource "aws_security_group" "instance" {

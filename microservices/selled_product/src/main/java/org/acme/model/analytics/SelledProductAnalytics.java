@@ -14,7 +14,7 @@ public abstract class SelledProductAnalytics {
 
     private int numberOfTotalPurchases;
 
-    private int numberOfPurchasesIncludingProduct;
+    private int numberOfTotalPurchasesIncludingProduct;
 
     private Float totalRevenue;
 
@@ -23,12 +23,12 @@ public abstract class SelledProductAnalytics {
     public SelledProductAnalytics() {
     }
 
-    public SelledProductAnalytics(Long id, String product, LocalDateTime calculatedAt, int numberOfTotalPurchases, int numberOfPurchasesIncludingProduct, Float totalRevenue, String description) {
+    public SelledProductAnalytics(Long id, String product, LocalDateTime calculatedAt, int numberOfTotalPurchases, int numberOfTotalPurchasesIncludingProduct, Float totalRevenue, String description) {
         this.id = id;
         this.product = product;
         this.calculatedAt = calculatedAt;
         this.numberOfTotalPurchases = numberOfTotalPurchases;
-        this.numberOfPurchasesIncludingProduct = numberOfPurchasesIncludingProduct;
+        this.numberOfTotalPurchasesIncludingProduct = numberOfTotalPurchasesIncludingProduct;
         this.totalRevenue = totalRevenue;
         this.description = description;
     }
@@ -65,12 +65,12 @@ public abstract class SelledProductAnalytics {
         this.numberOfTotalPurchases = numberOfTotalPurchases;
     }
 
-    public int getNumberOfPurchasesIncludingProduct() {
-        return numberOfPurchasesIncludingProduct;
+    public int getNumberOfTotalPurchasesIncludingProduct() {
+        return numberOfTotalPurchasesIncludingProduct;
     }
 
-    public void setNumberOfPurchasesIncludingProduct(int numberOfPurchasesIncludingProduct) {
-        this.numberOfPurchasesIncludingProduct = numberOfPurchasesIncludingProduct;
+    public void setNumberOfTotalPurchasesIncludingProduct(int numberOfTotalPurchasesIncludingProduct) {
+        this.numberOfTotalPurchasesIncludingProduct = numberOfTotalPurchasesIncludingProduct;
     }
 
     public Float getTotalRevenue() {
@@ -106,7 +106,7 @@ public abstract class SelledProductAnalytics {
                 ", product='" + product + '\'' +
                 ", calculatedAt=" + calculatedAt +
                 ", numberOfTotalPurchases=" + numberOfTotalPurchases +
-                ", numberOfPurchasesIncludingProduct=" + numberOfPurchasesIncludingProduct +
+                ", numberOfTotalPurchasesIncludingProduct=" + numberOfTotalPurchasesIncludingProduct +
                 ", totalRevenue=" + totalRevenue +
                 ", description='" + description + '\'' +
                 '}';
