@@ -195,32 +195,32 @@ terraform apply -auto-approve
 cd ../..
 
 
-# #Terraform - Quarkus Micro services changing the configuration of the DB connection, recompiling and packaging
-# cd microservices/selled_product/src/main/resources
-# sed -i "/quarkus.datasource.reactive.url/d" application.properties
-# sed -i "/quarkus.container-image.group/d" application.properties
-# sed -i "/kafka.bootstrap.servers/d" application.properties
-# echo "quarkus.container-image.group=$DockerUsername" >> application.properties                                        
-# echo "quarkus.datasource.reactive.url=mysql://$addressDB:3306/quarkus_test_all_operations" >> application.properties                                        
-# echo "kafka.bootstrap.servers=$addresskafka:9092" >> application.properties
-# cd ../../..
-# DockerImage="$(grep -m 1 "<artifactId>" pom.xml|sed "s/<artifactId>//g"|sed "s/<\/artifactId>//g" |sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g")"
-# DockerImageVersion="$(grep -m 1 "<version>" pom.xml|sed "s/<version>//g"|sed "s/<\/version>//g" |sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g")"
-# ./mvnw clean package
-# cd ../..
-# 
-# 
-# cd Quarkus-Terraform/selled_product
-# sed -i "/sudo docker login/d" quarkus.sh
-# sed -i "/sudo docker pull/d" quarkus.sh
-# sed -i "/sudo docker run/d" quarkus.sh
-# echo "sudo docker login -u \"$DockerUsername\" -p \"$DockerPassword\"" >> quarkus.sh
-# echo "sudo docker pull $DockerUsername/$DockerImage:$DockerImageVersion" >> quarkus.sh
-# echo "sudo docker run -d --name $DockerImage -p 8080:8080 $DockerUsername/$DockerImage:$DockerImageVersion" >> quarkus.sh
-# terraform init
-# terraform taint aws_instance.exampleDeployQuarkus
-# terraform apply -auto-approve
-# cd ../..
+#Terraform - Quarkus Micro services changing the configuration of the DB connection, recompiling and packaging
+cd microservices/selled_product/src/main/resources
+sed -i "/quarkus.datasource.reactive.url/d" application.properties
+sed -i "/quarkus.container-image.group/d" application.properties
+sed -i "/kafka.bootstrap.servers/d" application.properties
+echo "quarkus.container-image.group=$DockerUsername" >> application.properties                                        
+echo "quarkus.datasource.reactive.url=mysql://$addressDB:3306/quarkus_test_all_operations" >> application.properties                                        
+echo "kafka.bootstrap.servers=$addresskafka:9092" >> application.properties
+cd ../../..
+DockerImage="$(grep -m 1 "<artifactId>" pom.xml|sed "s/<artifactId>//g"|sed "s/<\/artifactId>//g" |sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g")"
+DockerImageVersion="$(grep -m 1 "<version>" pom.xml|sed "s/<version>//g"|sed "s/<\/version>//g" |sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g")"
+./mvnw clean package
+cd ../..
+
+
+cd Quarkus-Terraform/selled_product
+sed -i "/sudo docker login/d" quarkus.sh
+sed -i "/sudo docker pull/d" quarkus.sh
+sed -i "/sudo docker run/d" quarkus.sh
+echo "sudo docker login -u \"$DockerUsername\" -p \"$DockerPassword\"" >> quarkus.sh
+echo "sudo docker pull $DockerUsername/$DockerImage:$DockerImageVersion" >> quarkus.sh
+echo "sudo docker run -d --name $DockerImage -p 8080:8080 $DockerUsername/$DockerImage:$DockerImageVersion" >> quarkus.sh
+terraform init
+terraform taint aws_instance.exampleDeployQuarkus
+terraform apply -auto-approve
+cd ../..
 
 
 
@@ -313,15 +313,16 @@ cd ../..
 
 cd Kong-Terraform
 sed -i "s/name=CrossSellingRecommendation.*/name=CrossSellingRecommendation\" --data \"url=http:\/\/$addressMS:8080\/CrossSellingRecommendation\"/g" kong.sh
+cd ..
 
 #echo Quarkus - 
-# cd Quarkus-Terraform/selled_product
-# #terraform state show 'aws_instance.exampleDeployQuarkus' |grep public_dns
-# echo "MICROSERVICE Selled Product IS AVAILABLE HERE:"
-# addressMS="$(terraform state show aws_instance.exampleDeployQuarkus |grep public_dns | sed "s/public_dns//g" | sed "s/=//g" | sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g" )"
-# echo "http://"$addressMS":8080/q/swagger-ui/"
-# echo
-# cd ../..
+cd Quarkus-Terraform/selled_product
+#terraform state show 'aws_instance.exampleDeployQuarkus' |grep public_dns
+echo "MICROSERVICE Selled Product IS AVAILABLE HERE:"
+addressMS="$(terraform state show aws_instance.exampleDeployQuarkus |grep public_dns | sed "s/public_dns//g" | sed "s/=//g" | sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g" )"
+echo "http://"$addressMS":8080/q/swagger-ui/"
+echo
+cd ../..
 
 
 #echo Ollama -
@@ -330,7 +331,7 @@ echo "OLLAMA IS AVAILABLE HERE:"
 addressOllama="$(terraform state show aws_instance.exampleOllama |grep public_dns | sed "s/public_dns//g" | sed "s/=//g" | sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g" )"
 echo "http://"$addressOllama":11434"
 echo
-cd ../..
+cd ..
 
 
 cd RDS-Terraform
@@ -340,13 +341,32 @@ terraform state show aws_db_instance.example |grep port
 echo
 cd ..
 
+source ./access2.sh
+
 cd Kong-Terraform
 terraform init
 terraform taint aws_instance.exampleInstallKong
 terraform apply -auto-approve
+cd ..
 
+cd Camunda-Terraform
+terraform init
+terraform taint aws_instance.exampleInstallCamundaEngine
+terraform apply -auto-approve
+cd ..
+
+cd Kong-Terraform
 echo "KONG IS AVAILABLE HERE:"
-addressMS="$(terraform state show aws_instance.exampleDeployQuarkus |grep public_dns | sed "s/public_dns//g" | sed "s/=//g" | sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g" )"
+addressMS="$(terraform state show aws_instance.exampleInstallKong |grep public_dns | sed "s/public_dns//g" | sed "s/=//g" | sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g" )"
 echo "http://"$addressMS":8000"
 echo
 cd ..
+
+cd Camunda-Terraform
+echo "CAMUNDA IS AVAILABLE HERE:"
+addressMS="$(terraform state show aws_instance.exampleInstallCamundaEngine |grep public_dns | sed "s/public_dns//g" | sed "s/=//g" | sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g" )"
+echo "http://"$addressMS":8080/camunda"
+echo
+cd ..
+
+
