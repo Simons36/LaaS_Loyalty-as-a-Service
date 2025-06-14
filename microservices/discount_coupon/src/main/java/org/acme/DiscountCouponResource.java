@@ -10,6 +10,8 @@ import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.acme.model.DiscountCoupon;
 import io.vertx.mutiny.mysqlclient.MySQLPool;
@@ -18,8 +20,12 @@ import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import io.quarkus.runtime.StartupEvent;
 
+import org.jboss.logging.Logger;
+
 @Path("/Discountcoupon")
 public class DiscountCouponResource {
+
+    private static final Logger LOG = Logger.getLogger(DiscountCouponResource.class);
 
     @Inject
     MySQLPool client;
@@ -43,17 +49,19 @@ public class DiscountCouponResource {
     private void initdb() {
         // In a production environment this configuration SHOULD NOT be used
         client.query("DROP TABLE IF EXISTS DiscountCoupons").execute()
-            .flatMap(r -> client.query(
-                "CREATE TABLE DiscountCoupons (" +
-                "id SERIAL PRIMARY KEY, " +
-                "expiration DATETIME NOT NULL, " +
-                "loyaltyCard_id BIGINT UNSIGNED NOT NULL, " +
-                "product VARCHAR(255) NOT NULL, " +
-                "discount_percentage FLOAT NOT NULL)").execute())
-            .flatMap(r -> client.query(
-                "INSERT INTO DiscountCoupons (expiration, loyaltyCard_id, product, discount_percentage) " +
-                "VALUES ('2038-01-19 03:14:07', 1, 'Beef', 10.0)").execute())
-            .await().indefinitely();
+                .flatMap(r -> client.query(
+                        "CREATE TABLE DiscountCoupons (" +
+                                "id SERIAL PRIMARY KEY, " +
+                                "expiration DATETIME NOT NULL, " +
+                                "loyaltyCard_id BIGINT UNSIGNED NOT NULL, " +
+                                "product VARCHAR(255) NOT NULL, " +
+                                "discount_percentage FLOAT NOT NULL)")
+                        .execute())
+                .flatMap(r -> client.query(
+                        "INSERT INTO DiscountCoupons (expiration, loyaltyCard_id, product, discount_percentage) " +
+                                "VALUES ('2038-01-19 03:14:07', 1, 'Beef', 10.0)")
+                        .execute())
+                .await().indefinitely();
     }
 
     @GET
@@ -65,43 +73,61 @@ public class DiscountCouponResource {
     @Path("{id}")
     public Uni<Response> getSingle(Long id) {
         return DiscountCoupon.findById(client, id)
-            .onItem().transform(discountCoupon -> discountCoupon != null ? Response.ok(discountCoupon) : Response.status(Response.Status.NOT_FOUND))
-            .onItem().transform(ResponseBuilder::build);
+                .onItem()
+                .transform(discountCoupon -> discountCoupon != null ? Response.ok(discountCoupon)
+                        : Response.status(Response.Status.NOT_FOUND))
+                .onItem().transform(ResponseBuilder::build);
     }
 
     @POST
-    public Uni<Response> create(DiscountCoupon discountCoupon) {
-        Uni<Response> response =  discountCoupon.save(client, discountCoupon.getExpiration(), discountCoupon.getLoyaltyCard_id(), discountCoupon.getDiscountType())
-            .onItem().transform(id -> URI.create("/discountcoupon/" + id))
-            .onItem().transform(uri -> Response.created(uri).build());
+    public Uni<Response> create(List<DiscountCoupon> discountCoupons) {
+        LOG.info("📩 Received request to create " + discountCoupons.size() + " discount coupons");
 
-        // Send message to Kafka topic
+        List<Uni<Boolean>> operations = new ArrayList<>();
 
-        String topic = "discount_coupons";
-        String key = String.valueOf(discountCoupon.getLoyaltyCard_id());
-        String message = discountCoupon.toJsonString();
+        for (DiscountCoupon coupon : discountCoupons) {
+            Uni<Boolean> op = coupon
+                    .save(client, coupon.getExpiration(), coupon.getLoyaltyCard_id(), coupon.getDiscountType())
+                    .invoke(() -> {
+                        String topic = "discount_coupons";
+                        String key = String.valueOf(coupon.getLoyaltyCard_id());
+                        String message = coupon.toJsonString();
 
-        DynamicTopicProducer.send(topic, key, message);
+                        LOG.infof("✅ Coupon saved and sending to Kafka: %s", message);
+                        DynamicTopicProducer.send(topic, key, message);
+                    })
+                    .onFailure().invoke(err -> {
+                        LOG.error("❌ Failed to save or send coupon: " + coupon.toJsonString(), err);
+                    });
 
-        return response;
+            operations.add(op);
+        }
+
+        return Uni.combine().all().unis(operations)
+                .combinedWith(results -> Response.status(Response.Status.CREATED).build())
+                .onFailure().invoke(err -> {
+                    LOG.error("❌ Error occurred while processing batch request", err);
+                });
     }
 
     @DELETE
     @Path("{id}")
     public Uni<Response> delete(Long id) {
         return DiscountCoupon.delete(client, id)
-            .onItem().transform(deleted -> deleted ? Response.noContent() : Response.status(Response.Status.NOT_FOUND))
-            .onItem().transform(ResponseBuilder::build);
+                .onItem()
+                .transform(deleted -> deleted ? Response.noContent() : Response.status(Response.Status.NOT_FOUND))
+                .onItem().transform(ResponseBuilder::build);
     }
 
     @PUT
     @Path("{id}")
     public Uni<Response> update(Long id, DiscountCoupon discountCoupon) {
-        return DiscountCoupon.update(client, id, discountCoupon.getExpiration(), discountCoupon.getLoyaltyCard_id(), discountCoupon.getDiscountType())
-            .onItem().transform(updated -> updated ? Response.noContent() : Response.status(Response.Status.NOT_FOUND))
-            .onItem().transform(ResponseBuilder::build);
+        return DiscountCoupon
+                .update(client, id, discountCoupon.getExpiration(), discountCoupon.getLoyaltyCard_id(),
+                        discountCoupon.getDiscountType())
+                .onItem()
+                .transform(updated -> updated ? Response.noContent() : Response.status(Response.Status.NOT_FOUND))
+                .onItem().transform(ResponseBuilder::build);
     }
 
-
-    
 }

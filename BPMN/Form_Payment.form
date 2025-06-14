@@ -1,0 +1,33 @@
+{
+  "components": [
+    {
+      "label": "Text field",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0hhhiqv",
+        "columns": null
+      },
+      "id": "Field_1c3c6fm",
+      "key": "textfield_053nbm"
+    },
+    {
+      "label": "Number",
+      "type": "number",
+      "layout": {
+        "row": "Row_16181w2",
+        "columns": null
+      },
+      "id": "Field_048vcec",
+      "key": "number_z23vm85"
+    }
+  ],
+  "type": "default",
+  "id": "Form_Payment",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.36.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.23.0",
+  "schemaVersion": 18
+}

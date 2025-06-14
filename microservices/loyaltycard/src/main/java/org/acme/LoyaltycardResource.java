@@ -60,6 +60,21 @@ public class LoyaltycardResource {
                 .onItem().transform(ResponseBuilder::build); 
     }
 
+    @GET
+    @Path("customer/{idCustomer}")
+    public Uni<Response> findByCustomer(@PathParam("idCustomer") Long idCustomer) {
+        return Loyaltycard.findByCustomerId(client, idCustomer)
+                .collect().asList()
+                .onItem().transform(loyaltycards -> {
+                    if (loyaltycards.isEmpty()) {
+                        return Response.status(Response.Status.NOT_FOUND).build();
+                    } else {
+                        return Response.ok(loyaltycards).build();
+                    }
+                });
+    }
+
+
     @POST
     public Uni<Response> create(Loyaltycard loyaltycard) {
         return loyaltycard.save(client , loyaltycard.idCustomer , loyaltycard.idShop)

@@ -1,0 +1,20 @@
+Danone:       - YoPRO Protein Bar             [Category: Protein]
+              - YoPRO Protein Solid Yogurt    [Category: Protein]
+              - YoPRO Protein Liquid Yogurt   [Category: Protein]
+              - OIKOS                         [Category: Greek Yogurt]
+              - Milk                          [Category: Milk]
+
+White Label:  - Protein Bar                   [Category: Protein]
+              - Protein Solid Yogurt          [Category: Protein]
+              - Protein Liquid Yogurt         [Category: Protein]
+              - Milk                          [Category: Milk]
+              - Greek Yogurt                  [Category: Greek Yogurt]
+              - Soda                          [Category: Soda]
+              - Soda No Sugar                 [Category: Lightexecution.setVariable("PRODUCT_CATEGORIES_MAP", S(JSON.stringify(categories)));
+ Soda]
+
+Coca-Cola:    - Coca-Cola                     [Category: Soda]
+              - Coca-Cola Zero                [Category: Light Soda]
+
+Pepsi:        - Pepsi                         [Category: Soda]
+              - Pepsi Zero                    [Category: Light Soda]

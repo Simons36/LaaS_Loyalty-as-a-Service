@@ -5,6 +5,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -20,36 +21,38 @@ import io.smallrye.mutiny.Uni;
 @Path("Purchase")
 public class KafkaProvisioningResource {
 
-    
-
     @Inject
     io.vertx.mutiny.mysqlclient.MySQLPool client;
-    
-    @Inject
-    @ConfigProperty(name = "myapp.schema.create", defaultValue = "true") 
-    boolean schemaCreate ;
 
-    @ConfigProperty(name = "kafka.bootstrap.servers") 
+    @Inject
+    @ConfigProperty(name = "myapp.schema.create", defaultValue = "true")
+    boolean schemaCreate;
+
+    @ConfigProperty(name = "kafka.bootstrap.servers")
     String kafka_servers;
-    
+
     void config(@Observes StartupEvent ev) {
         if (schemaCreate) {
             initdb();
         }
     }
-    
+
     private void initdb() {
         // In a production environment this configuration SHOULD NOT be used
         client.query("DROP TABLE IF EXISTS Purchases").execute()
-        .flatMap(r -> client.query("CREATE TABLE Purchases (id SERIAL PRIMARY KEY,DateTime DATETIME, Price FLOAT, Product TEXT NOT NULL, Supplier TEXT NOT NULL, shopname TEXT NOT NULL, loyaltycardid BIGINT UNSIGNED, discountcouponid BIGINT UNSIGNED)").execute())
-        .flatMap(r -> client.query("INSERT INTO Purchases (DateTime,Price,Product,Supplier,shopname,loyaltycardid,discountcouponid) VALUES ('2038-01-19 03:14:07','12.34','one product','supplier','arco cego',1,1)").execute())
-        .await().indefinitely();
+                .flatMap(r -> client.query(
+                        "CREATE TABLE Purchases (id SERIAL PRIMARY KEY,DateTime DATETIME, Price FLOAT, Product TEXT NOT NULL, Supplier TEXT NOT NULL, shopname TEXT NOT NULL, loyaltycardid BIGINT UNSIGNED, discountcouponid BIGINT UNSIGNED)")
+                        .execute())
+                .flatMap(r -> client.query(
+                        "INSERT INTO Purchases (DateTime,Price,Product,Supplier,shopname,loyaltycardid,discountcouponid) VALUES ('2038-01-19 03:14:07','12.34','one product','supplier','arco cego',1,1)")
+                        .execute())
+                .await().indefinitely();
     }
 
     @POST
     @Path("Consume")
     public String ProvisioningConsumer(Topic topic) {
-        Thread worker = new DynamicTopicConsumer(topic.TopicName , kafka_servers , client);
+        Thread worker = new DynamicTopicConsumer(topic.TopicName, kafka_servers, client);
         worker.start();
         return "New worker started";
     }
@@ -63,10 +66,29 @@ public class KafkaProvisioningResource {
     @Path("{id}")
     public Uni<Response> getSingle(Long id) {
         return Purchase.findById(client, id)
-                .onItem().transform(purchase -> purchase != null ? Response.ok(purchase) : Response.status(Response.Status.NOT_FOUND)) 
-                .onItem().transform(ResponseBuilder::build); 
+                .onItem()
+                .transform(purchase -> purchase != null ? Response.ok(purchase)
+                        : Response.status(Response.Status.NOT_FOUND))
+                .onItem().transform(ResponseBuilder::build);
+    }
+
+    @GET
+    @Path("loyaltycard/{id}")
+    public Multi<Purchase> getByLoyaltyCardId(Long id) {
+        return Purchase.findByLoyaltyCardId(client, id);
+    }
+
+    @GET
+    @Path("loyaltycard/{id}/top-product")
+    public Uni<Response> getTopProductByLoyaltyCardId(@PathParam("id") Long id) {
+        return Purchase.findTopProductByLoyaltyCardId(client, id)
+                .onItem().transform(product -> {
+                    if (product == null) {
+                        return Response.status(Response.Status.NOT_FOUND).build();
+                    } else {
+                        return Response.ok(product).build();
+                    }
+                });
     }
 
 }
-
-
