@@ -355,6 +355,30 @@ terraform taint aws_instance.exampleInstallCamundaEngine
 terraform apply -auto-approve
 cd ..
 
+# === Configuration ===
+BPMN_ORIGINAL="BPMN/Discount_Coupon.bpmn"
+BPMN_TEMP="BPMN/Discount_Coupon_Temp.bpmn"
+
+# Get Camunda Address
+cd Camunda-Terraform
+camundaAddress="$(terraform state show aws_instance.exampleInstallCamundaEngine | grep public_dns | awk '{print $3}' | tr -d '"')"
+cd ..
+
+# Get Kong Address
+kong_url=$(cd Kong-Terraform && terraform state show aws_instance.exampleInstallKong | grep public_dns | awk '{print $3}' | tr -d '"')
+
+# Create a temp copy and replace ${kong_url}
+cp "$BPMN_ORIGINAL" "$BPMN_TEMP"
+sed -i "s|\${kong_url}|http://$kong_url:8000|g" "$BPMN_TEMP"
+
+# Deploy the BPMN file
+./Auxiliary-Scripts/CamundaDeployBPMNTest.sh "$BPMN_TEMP" "http://$camundaAddress:8080/engine-rest" "./BPMN/additional_files/select-customer.html" "./BPMN/additional_files/select-loyalty_card.html
+
+# Clean up
+rm "$BPMN_TEMP"
+
+echo "✅ BPMN deployed and temporary file cleaned up."
+
 cd Kong-Terraform
 echo "KONG IS AVAILABLE HERE:"
 addressMS="$(terraform state show aws_instance.exampleInstallKong |grep public_dns | sed "s/public_dns//g" | sed "s/=//g" | sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g" )"

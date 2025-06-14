@@ -13,7 +13,7 @@
           <camunda:inputOutput>
             <camunda:inputParameter name="method">GET</camunda:inputParameter>
             <camunda:inputParameter name="payload" />
-            <camunda:inputParameter name="url">http://172.17.0.1:9001/Purchase/loyaltycard/${selectedLoyaltyCardId}</camunda:inputParameter>
+            <camunda:inputParameter name="url">${kong_url}/Purchase/loyaltycard/${selectedLoyaltyCardId}</camunda:inputParameter>
             <camunda:outputParameter name="purchases_list">
               <camunda:script scriptFormat="JavaScript">var response = connector.getVariable("response");
 
@@ -27,9 +27,6 @@
       <bpmn:incoming>Flow_0ive124</bpmn:incoming>
       <bpmn:outgoing>Flow_00it41e</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:startEvent id="StartEvent_1">
-      <bpmn:outgoing>Flow_0aadkgg</bpmn:outgoing>
-    </bpmn:startEvent>
     <bpmn:scriptTask id="Activity_0097fhp" name="Compute Top Purchased Product" scriptFormat="JavaScript" camunda:resultVariable="top_purchased_products">
       <bpmn:incoming>Flow_00it41e</bpmn:incoming>
       <bpmn:outgoing>Flow_10bq9jm</bpmn:outgoing>
@@ -102,77 +99,6 @@ topProducts.forEach(function(p) {
       <bpmn:outgoing>Flow_1v5naxm</bpmn:outgoing>
       <bpmn:outgoing>Flow_13ez583</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:scriptTask id="Activity_1l59sgl" name="test" scriptFormat="JavaScript" camunda:resultVariable="PRODUCT_CATEGORIES_MAP">
-      <bpmn:incoming>Flow_0aadkgg</bpmn:incoming>
-      <bpmn:outgoing>Flow_1npefu6</bpmn:outgoing>
-      <bpmn:script>var categories = {
-  "Protein": [
-    "YoPRO Protein Bar",
-    "YoPRO Protein Solid Yogurt",
-    "YoPRO Protein Liquid Yogurt",
-    "Protein Bar",
-    "Protein Solid Yogurt",
-    "Protein Liquid Yogurt"
-  ],
-  "Greek Yogurt": [
-    "OIKOS",
-    "Greek Yogurt"
-  ],
-  "Milk": [
-    "Milk"
-  ],
-  "Soda": [
-    "Coca-Cola",
-    "Pepsi",
-    "Soda"
-  ],
-  "Light Soda": [
-    "Coca-Cola Zero",
-    "Pepsi Zero",
-    "Soda No Sugar"
-  ]
-};
-
-var productCategoriesList = [];
-
-for (var category in categories) {
-  productCategoriesList.push({
-    key: category,
-    value: categories[category]
-  });
-}
-
-S(JSON.stringify(productCategoriesList));</bpmn:script>
-    </bpmn:scriptTask>
-    <bpmn:serviceTask id="Activity_08sa9gb" name="Retrieve Customer Catalog">
-      <bpmn:extensionElements>
-        <camunda:connector>
-          <camunda:inputOutput>
-            <camunda:inputParameter name="method">GET</camunda:inputParameter>
-            <camunda:inputParameter name="url">http://172.17.0.1:9002/Customer</camunda:inputParameter>
-            <camunda:inputParameter name="payload" />
-            <camunda:outputParameter name="result">
-              <camunda:script scriptFormat="JavaScript">S(connector.getVariable("response"));</camunda:script>
-            </camunda:outputParameter>
-            <camunda:outputParameter name="AVAILABLE_PRODUCT_TYPES">
-              <camunda:script scriptFormat="JavaScript">var response = connector.getVariable("response");
-      var customers = JSON.parse(response);
-
-      var map = {};
-      customers.forEach(function(c) {
-        map[c.id] = c.name + " (" + c.location + ")";
-      });
-
-      // Return Spin.JSON
-      S(JSON.stringify(map));</camunda:script>
-            </camunda:outputParameter>
-          </camunda:inputOutput>
-          <camunda:connectorId>http-connector</camunda:connectorId>
-        </camunda:connector>
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1npefu6</bpmn:incoming>
-      <bpmn:outgoing>Flow_0cw943y</bpmn:outgoing>
-    </bpmn:serviceTask>
     <bpmn:userTask id="Activity_13w3vpk" name="Decide which customer to verify Discount Coupon emission" camunda:formKey="embedded:deployment:select-customer.html">
       <bpmn:extensionElements />
       <bpmn:incoming>Flow_0cw943y</bpmn:incoming>
@@ -183,7 +109,7 @@ S(JSON.stringify(productCategoriesList));</bpmn:script>
         <camunda:connector>
           <camunda:inputOutput>
             <camunda:inputParameter name="method">GET</camunda:inputParameter>
-            <camunda:inputParameter name="url">http://172.17.0.1:9003/Loyaltycard/customer/${selectedCustomerId}</camunda:inputParameter>
+            <camunda:inputParameter name="url">${kong_url}/Loyaltycard/customer/${selectedCustomerId}</camunda:inputParameter>
             <camunda:inputParameter name="payload" />
             <camunda:outputParameter name="loyalty_cards_list">
               <camunda:script scriptFormat="JavaScript">var response = connector.getVariable("response");
@@ -250,7 +176,7 @@ S(JSON.stringify(coupons)).toString();</bpmn:script>
       <bpmn:extensionElements>
         <camunda:connector>
           <camunda:inputOutput>
-            <camunda:inputParameter name="url">http://172.17.0.1:9004/Discountcoupon</camunda:inputParameter>
+            <camunda:inputParameter name="url">${kong_url}/Discountcoupon</camunda:inputParameter>
             <camunda:inputParameter name="method">POST</camunda:inputParameter>
             <camunda:inputParameter name="payload">${discount_coupons_request_body}</camunda:inputParameter>
             <camunda:inputParameter name="headers">
@@ -282,6 +208,80 @@ S(JSON.stringify(coupons)).toString();</bpmn:script>
     <bpmn:sequenceFlow id="Flow_1xtre20" sourceRef="Activity_0d6bdoq" targetRef="Activity_1mfyks0" />
     <bpmn:sequenceFlow id="Flow_1puji5a" sourceRef="Activity_1fqrfch" targetRef="Activity_0n9eyoy" />
     <bpmn:sequenceFlow id="Flow_1ewthoe" sourceRef="Activity_0n9eyoy" targetRef="Event_1d4wq8p" />
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_0aadkgg</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:scriptTask id="Activity_1l59sgl" name="test" scriptFormat="JavaScript" camunda:resultVariable="PRODUCT_CATEGORIES_MAP">
+      <bpmn:incoming>Flow_0aadkgg</bpmn:incoming>
+      <bpmn:outgoing>Flow_1npefu6</bpmn:outgoing>
+      <bpmn:script>var categories = {
+  "Protein": [
+    "YoPRO Protein Bar",
+    "YoPRO Protein Solid Yogurt",
+    "YoPRO Protein Liquid Yogurt",
+    "Protein Bar",
+    "Protein Solid Yogurt",
+    "Protein Liquid Yogurt"
+  ],
+  "Greek Yogurt": [
+    "OIKOS",
+    "Greek Yogurt"
+  ],
+  "Milk": [
+    "Milk"
+  ],
+  "Soda": [
+    "Coca-Cola",
+    "Pepsi",
+    "Soda"
+  ],
+  "Light Soda": [
+    "Coca-Cola Zero",
+    "Pepsi Zero",
+    "Soda No Sugar"
+  ]
+};
+
+var productCategoriesList = [];
+
+for (var category in categories) {
+  productCategoriesList.push({
+    key: category,
+    value: categories[category]
+  });
+}
+
+S(JSON.stringify(productCategoriesList));</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:serviceTask id="Activity_08sa9gb" name="Retrieve Customer Catalog">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="method">GET</camunda:inputParameter>
+            <camunda:inputParameter name="url">${kong_url}/Customer</camunda:inputParameter>
+            <camunda:inputParameter name="payload" />
+            <camunda:outputParameter name="result">
+              <camunda:script scriptFormat="JavaScript">S(connector.getVariable("response"));</camunda:script>
+            </camunda:outputParameter>
+            <camunda:outputParameter name="AVAILABLE_PRODUCT_TYPES">
+              <camunda:script scriptFormat="JavaScript">var response = connector.getVariable("response");
+      var customers = JSON.parse(response);
+
+      var map = {};
+      customers.forEach(function(c) {
+        map[c.id] = c.name + " (" + c.location + ")";
+      });
+
+      // Return Spin.JSON
+      S(JSON.stringify(map));</camunda:script>
+            </camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1npefu6</bpmn:incoming>
+      <bpmn:outgoing>Flow_0cw943y</bpmn:outgoing>
+    </bpmn:serviceTask>
   </bpmn:process>
   <bpmn:process id="Process_0hg456n" isExecutable="false" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
@@ -293,9 +293,6 @@ S(JSON.stringify(coupons)).toString();</bpmn:script>
       <bpmndi:BPMNShape id="Activity_05j8m1e_di" bpmnElement="Activity_13ozzlb" bioc:stroke="#831311" bioc:fill="#ffcdd2" color:background-color="#ffcdd2" color:border-color="#831311">
         <dc:Bounds x="1260" y="80" width="100" height="80" />
         <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
-        <dc:Bounds x="212" y="102" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0097fhp_di" bpmnElement="Activity_0097fhp" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
         <dc:Bounds x="1430" y="80" width="100" height="80" />
@@ -310,14 +307,6 @@ S(JSON.stringify(coupons)).toString();</bpmn:script>
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1915" y="66" width="49" height="27" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1l59sgl_di" bpmnElement="Activity_1l59sgl">
-        <dc:Bounds x="320" y="80" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1dg2zgi_di" bpmnElement="Activity_08sa9gb" bioc:stroke="#831311" bioc:fill="#ffcdd2" color:background-color="#ffcdd2" color:border-color="#831311">
-        <dc:Bounds x="500" y="80" width="100" height="80" />
-        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1yhfbzn_di" bpmnElement="Activity_13w3vpk">
         <dc:Bounds x="700" y="80" width="100" height="80" />
@@ -344,6 +333,17 @@ S(JSON.stringify(coupons)).toString();</bpmn:script>
       <bpmndi:BPMNShape id="Activity_1s2llfm_di" bpmnElement="Activity_0n9eyoy" bioc:stroke="#831311" bioc:fill="#ffcdd2" color:background-color="#ffcdd2" color:border-color="#831311">
         <dc:Bounds x="2380" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1sbhidx_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="212" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1l59sgl_di" bpmnElement="Activity_1l59sgl">
+        <dc:Bounds x="310" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1dg2zgi_di" bpmnElement="Activity_08sa9gb" bioc:stroke="#831311" bioc:fill="#ffcdd2" color:background-color="#ffcdd2" color:border-color="#831311">
+        <dc:Bounds x="500" y="80" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_0ive124_di" bpmnElement="Flow_0ive124">
         <di:waypoint x="1140" y="120" />
         <di:waypoint x="1260" y="120" />
@@ -354,7 +354,7 @@ S(JSON.stringify(coupons)).toString();</bpmn:script>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0aadkgg_di" bpmnElement="Flow_0aadkgg">
         <di:waypoint x="248" y="120" />
-        <di:waypoint x="320" y="120" />
+        <di:waypoint x="310" y="120" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_10bq9jm_di" bpmnElement="Flow_10bq9jm">
         <di:waypoint x="1530" y="120" />
@@ -379,7 +379,7 @@ S(JSON.stringify(coupons)).toString();</bpmn:script>
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1npefu6_di" bpmnElement="Flow_1npefu6">
-        <di:waypoint x="420" y="120" />
+        <di:waypoint x="410" y="120" />
         <di:waypoint x="500" y="120" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0cw943y_di" bpmnElement="Flow_0cw943y">
@@ -406,13 +406,13 @@ S(JSON.stringify(coupons)).toString();</bpmn:script>
         <dc:Bounds x="1870" y="360" width="600" height="250" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_0dciig1_di" bpmnElement="Flow_0dciig1">
-        <di:waypoint x="2450" y="360" />
-        <di:waypoint x="2450" y="160" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1h1leja_di" bpmnElement="Flow_1h1leja">
         <di:waypoint x="2410" y="160" />
         <di:waypoint x="2410" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0dciig1_di" bpmnElement="Flow_0dciig1">
+        <di:waypoint x="2450" y="360" />
+        <di:waypoint x="2450" y="160" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

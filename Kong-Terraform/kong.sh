@@ -55,10 +55,10 @@ sleep 10
 
 # Create a service for the customer API
 curl -i -X POST http://localhost:8001/services \
-  --data "name=Customer" --data "url=http://ec2-3-83-202-118.compute-1.amazonaws.com:8080/Customer"
+  --data "name=Customer" --data "url=http://ec2-3-86-32-164.compute-1.amazonaws.com:8080/Customer"
 
 # Create a route for the customer service
-curl -i -X POST http://localhost:8001/services/customer/routes \
+curl -i -X POST http://localhost:8001/services/Customer/routes \
   --data "paths[]=/Customer" \
   --data "paths[]=/Customer/(?<id>/d+)" \
   --data "paths[]=/Customer/(?<id>/d+)/(?<name>[^/]+)/(?<FiscalNumber>[^/]+)/(?<location>[^/]+)" \
@@ -69,10 +69,10 @@ curl -i -X POST http://localhost:8001/services/customer/routes \
 
 # Create a service for the shop API
 curl -i -X POST http://localhost:8001/services \
-  --data "name=Shop" --data "url=http://ec2-44-211-127-59.compute-1.amazonaws.com:8080/Shop"
+  --data "name=Shop" --data "url=http://ec2-52-87-162-141.compute-1.amazonaws.com:8080/Shop"
 
 # Create a route for the shop service
-curl -i -X POST http://localhost:8001/services/shop/routes \
+curl -i -X POST http://localhost:8001/services/Shop/routes \
   --data "paths[]=/Shop" \
   --data "paths[]=/Shop/(?<id>/d+)" \
   --data "paths[]=/Shop/(?<id>/d+)/(?<name>[^/]+)/(?<location>[^/]+)" \
@@ -83,10 +83,10 @@ curl -i -X POST http://localhost:8001/services/shop/routes \
 
 # Create a service for the cross-selling recommendation API
 curl -i -X POST http://localhost:8001/services \
-  --data "name=CrossSellingRecommendation" --data "url=http://cross_selling_recommendation:8080/CrossSellingRecommendation"
+  --data "name=CrossSellingRecommendation" --data "url=http://ec2-44-201-236-93.compute-1.amazonaws.com:8080/CrossSellingRecommendation"
 
 # Create a route for the cross-selling recommendation service
-curl -i -X POST http://localhost:8001/services/cross_selling_recommendation/routes \
+curl -i -X POST http://localhost:8001/services/CrossSellingRecommendation/routes \
   --data "paths[]=/CrossSellingRecommendation" \
   --data "paths[]=/CrossSellingRecommendation/(?<id>/d+)" \
   --data "methods[]=GET" \
@@ -96,10 +96,10 @@ curl -i -X POST http://localhost:8001/services/cross_selling_recommendation/rout
 
 # Create a service for the discount coupon API
 curl -i -X POST http://localhost:8001/services \
-  --data "name=Discountcoupon" --data "url=http://ec2-3-83-202-118.compute-1.amazonaws.com:8080/Discountcoupon"
+  --data "name=Discountcoupon" --data "url=http://ec2-3-88-230-45.compute-1.amazonaws.com:8080/Discountcoupon"
 
 # Create a route for the discount coupon service
-curl -i -X POST http://localhost:8001/services/discount_coupon/routes \
+curl -i -X POST http://localhost:8001/services/Discountcoupon/routes \
   --data "paths[]=/Discountcoupon" \
   --data "paths[]=/Discountcoupon/(?<id>/d+)" \
   --data "methods[]=GET" \
@@ -109,10 +109,10 @@ curl -i -X POST http://localhost:8001/services/discount_coupon/routes \
 
 # Create a service for the purchase API
 curl -i -X POST http://localhost:8001/services \
-  --data "name=Purchase" --data "url=http://ec2-3-83-202-118.compute-1.amazonaws.com:8080/Purchase"
+  --data "name=Purchase" --data "url=http://ec2-54-163-171-5.compute-1.amazonaws.com:8080/Purchase"
 
 # Create a route for the purchase service
-curl -i -X POST http://localhost:8001/services/purchase/routes \
+curl -i -X POST http://localhost:8001/services/Purchase/routes \
   --data "paths[]=/Purchase" \
   --data "paths[]=/Purchase/(?<id>/d+)" \
   --data "paths[]=/Purchase/Consume" \
@@ -123,10 +123,10 @@ curl -i -X POST http://localhost:8001/services/purchase/routes \
 
 # Create a service for the loyalty card API
 curl -i -X POST http://localhost:8001/services \
-  --data "name=Loyaltycard" --data "url=http://ec2-3-83-202-118.compute-1.amazonaws.com:8080/Loyaltycard"
+  --data "name=Loyaltycard" --data "url=http://ec2-18-233-97-126.compute-1.amazonaws.com:8080/Loyaltycard"
 
 # Create a route for the loyalty card service
-curl -i -X POST http://localhost:8001/services/loyaltycard/routes \
+curl -i -X POST http://localhost:8001/services/Loyaltycard/routes \
   --data "paths[]=/Loyaltycard" \
   --data "paths[]=/Loyaltycard/(?<id>/d+)" \
   --data "paths[]=/Loyaltycard/(?<id>/d+)/(?<idCustomer>/d+)/(?<idShop>/d+)" \
