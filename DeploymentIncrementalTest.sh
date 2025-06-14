@@ -313,6 +313,7 @@ cd ../..
 
 cd Kong-Terraform
 sed -i "s/name=CrossSellingRecommendation.*/name=CrossSellingRecommendation\" --data \"url=http:\/\/$addressMS:8080\/CrossSellingRecommendation\"/g" kong.sh
+cd ..
 
 #echo Quarkus - 
 cd Quarkus-Terraform/selled_product
@@ -330,7 +331,7 @@ echo "OLLAMA IS AVAILABLE HERE:"
 addressOllama="$(terraform state show aws_instance.exampleOllama |grep public_dns | sed "s/public_dns//g" | sed "s/=//g" | sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g" )"
 echo "http://"$addressOllama":11434"
 echo
-cd ../..
+cd ..
 
 
 cd RDS-Terraform
@@ -340,13 +341,32 @@ terraform state show aws_db_instance.example |grep port
 echo
 cd ..
 
+source ./access2.sh
+
 cd Kong-Terraform
 terraform init
 terraform taint aws_instance.exampleInstallKong
 terraform apply -auto-approve
+cd ..
 
+cd Camunda-Terraform
+terraform init
+terraform taint aws_instance.exampleInstallCamundaEngine
+terraform apply -auto-approve
+cd ..
+
+cd Kong-Terraform
 echo "KONG IS AVAILABLE HERE:"
-addressMS="$(terraform state show aws_instance.exampleDeployQuarkus |grep public_dns | sed "s/public_dns//g" | sed "s/=//g" | sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g" )"
+addressMS="$(terraform state show aws_instance.exampleInstallKong |grep public_dns | sed "s/public_dns//g" | sed "s/=//g" | sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g" )"
 echo "http://"$addressMS":8000"
 echo
 cd ..
+
+cd Camunda-Terraform
+echo "CAMUNDA IS AVAILABLE HERE:"
+addressMS="$(terraform state show aws_instance.exampleInstallCamundaEngine |grep public_dns | sed "s/public_dns//g" | sed "s/=//g" | sed "s/\"//g" |sed "s/ //g" | sed "s/$esc\[[0-9;]*m//g" )"
+echo "http://"$addressMS":8080/camunda"
+echo
+cd ..
+
+

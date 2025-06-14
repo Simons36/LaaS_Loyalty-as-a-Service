@@ -32,10 +32,10 @@ cd Quarkus-Terraform/loyaltycard
 terraform destroy -auto-approve
 cd ../..
 
-# #Terraform - Quarkus selled_product
-# cd Quarkus-Terraform/selled_product
-# terraform destroy -auto-approve
-# cd ../..
+#Terraform - Quarkus selled_product
+cd Quarkus-Terraform/selled_product
+terraform destroy -auto-approve
+cd ../..
 
 # #Terraform - Ollama
 cd Ollama-Terraform
@@ -49,5 +49,17 @@ cd ..
 
 # # #Terraform - Kafka
 cd Kafka
+terraform destroy -auto-approve
+cd ..
+
+source ./access2.sh
+
+# #Terraform - Kong
+cd Kong-Terraform
+terraform destroy -auto-approve
+cd ..
+
+# #Terraform - Camunda
+cd Camunda-Terraform
 terraform destroy -auto-approve
 cd ..
