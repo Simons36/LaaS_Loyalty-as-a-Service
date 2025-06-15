@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:color="http://www.omg.org/spec/BPMN/non-normative/color/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1wkq697" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.35.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.23.0">
+  <bpmn:collaboration id="Collaboration_0mgvafd">
+    <bpmn:participant id="Participant_1vzhdu5" processRef="Process_0il0fjc" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_0il0fjc" isExecutable="true" camunda:historyTimeToLive="1">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_0pcxq4p</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Activity_0gdhkv3" name="Get customer list">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:outputParameter name="CustomerList" />
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="url">http://ec2-3-91-177-79.compute-1.amazonaws.com:8000/Customer</camunda:inputParameter>
+          <camunda:inputParameter name="method">GET</camunda:inputParameter>
+          <camunda:inputParameter name="payload" />
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0pcxq4p</bpmn:incoming>
+      <bpmn:outgoing>Flow_0sysxbu</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Activity_1g9evl1" name="Decide customer to recommend">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="CustomerList" label="Available customers:" type="string" />
+          <camunda:formField id="CustomerID" label="CustomerID" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0sysxbu</bpmn:incoming>
+      <bpmn:outgoing>Flow_0zoly0z</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Activity_13ozzlb" name="Retrieve Loyalty Cards&#39; Purchases">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="method">GET</camunda:inputParameter>
+            <camunda:inputParameter name="payload" />
+            <camunda:inputParameter name="url">http://ec2-3-91-177-79.compute-1.amazonaws.com:8000/Purchase/loyaltycard/${selectedLoyaltyCardId}</camunda:inputParameter>
+            <camunda:outputParameter name="purchases_list">
+              <camunda:script scriptFormat="JavaScript">var response = connector.getVariable("response");
+
+      // Just store the raw JSON array (as SpinJsonValue)
+      S(response);</camunda:script>
+            </camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1ssge6n</bpmn:incoming>
+      <bpmn:outgoing>Flow_1nc2gt4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_1j3ahd8" name="More than 10 purchases?">
+      <bpmn:incoming>Flow_1nc2gt4</bpmn:incoming>
+      <bpmn:outgoing>Flow_0tumg3s</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0g08363</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="Event_0w1ndp3">
+      <bpmn:incoming>Flow_0g08363</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:scriptTask id="Activity_0el23f1" name="Calculate most bought from suppliers" scriptFormat="JavaScript" camunda:resultVariable="top_purchased_suppliers">
+      <bpmn:incoming>Flow_0tumg3s</bpmn:incoming>
+      <bpmn:outgoing>Flow_1dag1ot</bpmn:outgoing>
+      <bpmn:script>var purchasesJson = execution.getVariable("purchases_list").toString();
+var purchases = JSON.parse(purchasesJson);
+
+var counts = {};
+
+// Count product occurrences
+purchases.forEach(function(p) {
+  var supplier = p.supplier;
+  counts[supplier] = (counts[supplier] || 0) + 1;
+});
+
+// Determine max count
+var maxCount = 0;
+for (var supplier in counts) {
+  if (counts[supplier] &gt; maxCount) {
+    maxCount = counts[supplier];
+  }
+}
+
+// Collect all products with that max count
+var topSuppliers = [];
+for (var supplier in counts) {
+  if (counts[supplier] === maxCount) {
+    topProducts.push(supplier);
+  }
+}
+
+S(JSON.stringify(topSuppliers));</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:serviceTask id="Activity_074msiw" name="Retrieve Customer&#39;s Loyalty Cards">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="method">GET</camunda:inputParameter>
+            <camunda:inputParameter name="url">http://ec2-3-91-177-79.compute-1.amazonaws.com:8000/Loyaltycard/customer/${selectedCustomerId}</camunda:inputParameter>
+            <camunda:inputParameter name="payload" />
+            <camunda:outputParameter name="loyalty_cards_list">
+              <camunda:script scriptFormat="JavaScript">var response = connector.getVariable("response");
+      var loyaltyCards = JSON.parse(response);
+
+      var map = {};
+      loyaltyCards.forEach(function(card) {
+        map[card.id] = "LoyaltyCard #" + card.id + " → Shop " + card.idShop;
+      });
+
+      S(JSON.stringify(map));</camunda:script>
+            </camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0zoly0z</bpmn:incoming>
+      <bpmn:outgoing>Flow_1ia3f94</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Activity_0pn9jlg" name="Decide which loyalty card to recommend" camunda:formKey="embedded:deployment:select-loyalty_card.html">
+      <bpmn:incoming>Flow_1ia3f94</bpmn:incoming>
+      <bpmn:outgoing>Flow_1ssge6n</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Activity_1vae7bg" name="Send recommendation">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="url">http://ec2-3-91-177-79.compute-1.amazonaws.com:8000/CrossSellingRecommendation</camunda:inputParameter>
+          <camunda:inputParameter name="method">POST</camunda:inputParameter>
+          <camunda:inputParameter name="payload">${rest_payload}</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1j5mmq8</bpmn:incoming>
+      <bpmn:outgoing>Flow_06dd3it</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:scriptTask id="Activity_1mf4jx2" name="Prepare rest payload" scriptFormat="JavaScript" camunda:resultVariable="rest_payload">
+      <bpmn:incoming>Flow_07th5ax</bpmn:incoming>
+      <bpmn:outgoing>Flow_1j5mmq8</bpmn:outgoing>
+      <bpmn:script>var originalShop = execution.getVariable("original_shop");
+var selectedShop = execution.getVariable("selected_shop");
+
+var loyaltyCardId = parseInt(execution.getVariable("selectedLoyaltyCardId"));
+
+// Compute expiration date (midnight, 2 weeks from now)
+var now = new Date();
+now.setDate(now.getDate() + 14);
+now.setHours(23, 59, 59, 0); // Set to 23:59:59.0
+var expiration = now.toISOString().split(".")[0]; // YYYY-MM-DDTHH:mm:ss
+
+var cross_selling = {
+    id: 0,
+    Expiration: expiration,
+    LoyaltyCard_ID: loyaltyCardId,
+    OriginShop: originalShop,
+    DestinationShop: selectedShop
+  };
+
+S(JSON.stringify(cross_selling)).toString();</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:scriptTask id="Activity_0yt7ult" name="Select shop" scriptFormat="JavaScript" camunda:resultVariable="selected_shop">
+      <bpmn:incoming>Flow_1k6wteh</bpmn:incoming>
+      <bpmn:outgoing>Flow_07th5ax</bpmn:outgoing>
+      <bpmn:script>var recommendableShops = execution.getVariable("recommendable_shops");
+
+// Handle different input types
+var shopArray = [];
+if (typeof recommendableShops === 'string') {
+  try {
+    shopArray = JSON.parse(recommendableShops);
+  } catch (e) {
+    shopArray = [];
+  }
+} else if (recommendableShops instanceof java.util.Collection) {
+  // Convert Java collection to JS array
+  shopArray = Java.from(recommendableShops);
+} else if (Array.isArray(recommendableShops)) {
+  shopArray = recommendableShops;
+}
+
+// Select random shop
+var selectedShop = null;
+if (shopArray.length &gt; 0) {
+  var randomIndex = Math.floor(Math.random() * shopArray.length);
+  selectedShop = shopArray[randomIndex];
+}
+
+S(selectedShop);</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:scriptTask id="Activity_0c6ba69" name="Get shops with most bought supplier" scriptFormat="JavaScript" camunda:resultVariable="recommendable_shops">
+      <bpmn:incoming>Flow_0d2ss3a</bpmn:incoming>
+      <bpmn:outgoing>Flow_1k6wteh</bpmn:outgoing>
+      <bpmn:script>var allPurchasesJson = execution.getVariable("all_purchases_list").toString();
+var topPurchasedSuppliers = execution.getVariable("top_purchased_suppliers");
+var purchasesJson = execution.getVariable("purchases_list").toString();
+
+var allPurchases = JSON.parse(allPurchasesJson);
+var purchasesList = JSON.parse(purchasesJson);
+
+// Get target supplier (first element of stack)
+var targetSupplier = null;
+try {
+  if (!topPurchasedSuppliers.isEmpty()) {
+    targetSupplier = topPurchasedSuppliers.get(0);
+  }
+} catch (e) {
+  // Handle case where it's not a Java stack
+  if (Array.isArray(topPurchasedSuppliers) {
+    targetSupplier = topPurchasedSuppliers[0];
+  }
+}
+
+// Get excluded shop names
+var excludedShops = new Set();
+purchasesList.forEach(function(p) {
+  if (p.shop_name) {
+    excludedShops.add(p.shop_name);
+  }
+});
+
+// Find matching shops
+var resultShops = new Set();
+allPurchases.forEach(function(purchase) {
+  if (purchase.supplier === targetSupplier &amp;&amp; 
+      purchase.shop_name &amp;&amp; 
+      !excludedShops.has(purchase.shop_name)) {
+    resultShops.add(purchase.shop_name);
+  }
+});
+
+S(JSON.stringify(resultShops));</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:serviceTask id="Activity_0uxqteq" name="Retrieve All Purchases">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="method">GET</camunda:inputParameter>
+            <camunda:inputParameter name="payload" />
+            <camunda:inputParameter name="url">http://ec2-3-91-177-79.compute-1.amazonaws.com:8000/Purchase</camunda:inputParameter>
+            <camunda:outputParameter name="all_purchases_list">
+              <camunda:script scriptFormat="JavaScript">var response = connector.getVariable("response");
+
+      // Just store the raw JSON array (as SpinJsonValue)
+      S(response);</camunda:script>
+            </camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0jedjmg</bpmn:incoming>
+      <bpmn:outgoing>Flow_0d2ss3a</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:scriptTask id="Activity_0njhmo3" name="Get original shop" scriptFormat="JavaScript" camunda:resultVariable="original_shop">
+      <bpmn:incoming>Flow_1dag1ot</bpmn:incoming>
+      <bpmn:outgoing>Flow_0jedjmg</bpmn:outgoing>
+      <bpmn:script>var topPurchasedSuppliers = execution.getVariable("top_purchased_suppliers");
+var purchasesJson = execution.getVariable("purchases_list").toString();
+
+var purchasesList = JSON.parse(purchasesJson);
+
+// Get target supplier (first element of stack)
+var targetSupplier = null;
+try {
+  if (!topPurchasedSuppliers.isEmpty()) {
+    targetSupplier = topPurchasedSuppliers.get(0);
+  }
+} catch (e) {
+  // Handle case where it's not a Java stack
+  if (Array.isArray(topPurchasedSuppliers) {
+    targetSupplier = topPurchasedSuppliers[0];
+  }
+}
+
+// Find matching shops
+var resultShop;
+allPurchases.forEach(function(purchase) {
+  if (purchase.supplier === targetSupplier &amp;&amp; 
+      purchase.shop_name {
+    resultShop = purchase.shop_name;
+  }
+});
+
+S(resultShop);</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:sequenceFlow id="Flow_0pcxq4p" sourceRef="StartEvent_1" targetRef="Activity_0gdhkv3" />
+    <bpmn:sequenceFlow id="Flow_0sysxbu" sourceRef="Activity_0gdhkv3" targetRef="Activity_1g9evl1" />
+    <bpmn:sequenceFlow id="Flow_0zoly0z" sourceRef="Activity_1g9evl1" targetRef="Activity_074msiw" />
+    <bpmn:sequenceFlow id="Flow_1ssge6n" sourceRef="Activity_0pn9jlg" targetRef="Activity_13ozzlb" />
+    <bpmn:sequenceFlow id="Flow_1nc2gt4" sourceRef="Activity_13ozzlb" targetRef="Gateway_1j3ahd8" />
+    <bpmn:sequenceFlow id="Flow_0tumg3s" name="Yes" sourceRef="Gateway_1j3ahd8" targetRef="Activity_0el23f1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" language="JavaScript">S(execution.getVariable("purchases_list")).elements().length &gt;= 10;</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0g08363" name="No" sourceRef="Gateway_1j3ahd8" targetRef="Event_0w1ndp3">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" language="JavaScript">S(execution.getVariable("purchases_list")).elements().length &lt; 10;</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1dag1ot" sourceRef="Activity_0el23f1" targetRef="Activity_0njhmo3" />
+    <bpmn:sequenceFlow id="Flow_1ia3f94" sourceRef="Activity_074msiw" targetRef="Activity_0pn9jlg" />
+    <bpmn:sequenceFlow id="Flow_1j5mmq8" sourceRef="Activity_1mf4jx2" targetRef="Activity_1vae7bg" />
+    <bpmn:sequenceFlow id="Flow_07th5ax" sourceRef="Activity_0yt7ult" targetRef="Activity_1mf4jx2" />
+    <bpmn:sequenceFlow id="Flow_1k6wteh" sourceRef="Activity_0c6ba69" targetRef="Activity_0yt7ult" />
+    <bpmn:sequenceFlow id="Flow_0d2ss3a" sourceRef="Activity_0uxqteq" targetRef="Activity_0c6ba69" />
+    <bpmn:sequenceFlow id="Flow_0jedjmg" sourceRef="Activity_0njhmo3" targetRef="Activity_0uxqteq" />
+    <bpmn:endEvent id="Event_0r6m229">
+      <bpmn:incoming>Flow_06dd3it</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_06dd3it" sourceRef="Activity_1vae7bg" targetRef="Event_0r6m229" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_0mgvafd">
+      <bpmndi:BPMNShape id="Participant_1vzhdu5_di" bpmnElement="Participant_1vzhdu5" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="2310" height="338" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="210" y="190" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0gdhkv3_di" bpmnElement="Activity_0gdhkv3" bioc:stroke="#831311" bioc:fill="#ffcdd2" color:background-color="#ffcdd2" color:border-color="#831311">
+        <dc:Bounds x="298" y="168" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1g9evl1_di" bpmnElement="Activity_1g9evl1">
+        <dc:Bounds x="458" y="168" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_05j8m1e_di" bpmnElement="Activity_13ozzlb" bioc:stroke="#831311" bioc:fill="#ffcdd2" color:background-color="#ffcdd2" color:border-color="#831311">
+        <dc:Bounds x="950" y="168" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1j3ahd8_di" bpmnElement="Gateway_1j3ahd8" isMarkerVisible="true">
+        <dc:Bounds x="1115" y="183" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1107" y="145.5" width="65" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0w1ndp3_di" bpmnElement="Event_0w1ndp3">
+        <dc:Bounds x="1232" y="300" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1ripfvk_di" bpmnElement="Activity_0el23f1" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
+        <dc:Bounds x="1230" y="168" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_02sxkff" bpmnElement="Activity_074msiw" bioc:stroke="#831311" bioc:fill="#ffcdd2" color:background-color="#ffcdd2" color:border-color="#831311">
+        <dc:Bounds x="620" y="168" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_08cjv73" bpmnElement="Activity_0pn9jlg">
+        <dc:Bounds x="780" y="168" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1yxvqhf_di" bpmnElement="Activity_1vae7bg" bioc:stroke="#831311" bioc:fill="#ffcdd2" color:background-color="#ffcdd2" color:border-color="#831311">
+        <dc:Bounds x="2090" y="168" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0ys3p4n_di" bpmnElement="Activity_1mf4jx2" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
+        <dc:Bounds x="1950" y="168" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1syyuod_di" bpmnElement="Activity_0yt7ult" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
+        <dc:Bounds x="1810" y="168" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0c6ba69_di" bpmnElement="Activity_0c6ba69" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
+        <dc:Bounds x="1670" y="168" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1x47nx0" bpmnElement="Activity_0uxqteq" bioc:stroke="#831311" bioc:fill="#ffcdd2" color:background-color="#ffcdd2" color:border-color="#831311">
+        <dc:Bounds x="1530" y="168" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1tgk2ai_di" bpmnElement="Activity_0njhmo3" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
+        <dc:Bounds x="1380" y="168" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0r6m229_di" bpmnElement="Event_0r6m229">
+        <dc:Bounds x="2232" y="190" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0pcxq4p_di" bpmnElement="Flow_0pcxq4p">
+        <di:waypoint x="246" y="208" />
+        <di:waypoint x="298" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0sysxbu_di" bpmnElement="Flow_0sysxbu">
+        <di:waypoint x="398" y="208" />
+        <di:waypoint x="458" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0zoly0z_di" bpmnElement="Flow_0zoly0z">
+        <di:waypoint x="558" y="208" />
+        <di:waypoint x="620" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ssge6n_di" bpmnElement="Flow_1ssge6n">
+        <di:waypoint x="880" y="208" />
+        <di:waypoint x="950" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1nc2gt4_di" bpmnElement="Flow_1nc2gt4">
+        <di:waypoint x="1050" y="208" />
+        <di:waypoint x="1115" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0tumg3s_di" bpmnElement="Flow_0tumg3s">
+        <di:waypoint x="1165" y="208" />
+        <di:waypoint x="1230" y="208" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1188" y="190" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0g08363_di" bpmnElement="Flow_0g08363">
+        <di:waypoint x="1140" y="233" />
+        <di:waypoint x="1140" y="318" />
+        <di:waypoint x="1232" y="318" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1148" y="273" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1dag1ot_di" bpmnElement="Flow_1dag1ot">
+        <di:waypoint x="1330" y="208" />
+        <di:waypoint x="1380" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1xcan6f" bpmnElement="Flow_1ia3f94">
+        <di:waypoint x="720" y="208" />
+        <di:waypoint x="780" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1j5mmq8_di" bpmnElement="Flow_1j5mmq8">
+        <di:waypoint x="2050" y="208" />
+        <di:waypoint x="2090" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_07th5ax_di" bpmnElement="Flow_07th5ax">
+        <di:waypoint x="1910" y="208" />
+        <di:waypoint x="1950" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1k6wteh_di" bpmnElement="Flow_1k6wteh">
+        <di:waypoint x="1770" y="208" />
+        <di:waypoint x="1810" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0d2ss3a_di" bpmnElement="Flow_0d2ss3a">
+        <di:waypoint x="1630" y="208" />
+        <di:waypoint x="1670" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0jedjmg_di" bpmnElement="Flow_0jedjmg">
+        <di:waypoint x="1480" y="208" />
+        <di:waypoint x="1530" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06dd3it_di" bpmnElement="Flow_06dd3it">
+        <di:waypoint x="2190" y="208" />
+        <di:waypoint x="2232" y="208" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
