@@ -8,6 +8,8 @@ import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowSet;
 import io.vertx.mutiny.sqlclient.Tuple;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Purchase {
     private Long id;
@@ -71,6 +73,17 @@ public class Purchase {
                 .execute(io.vertx.mutiny.sqlclient.Tuple.of(loyaltyCardId))
                 .onItem().transformToMulti(set -> Multi.createFrom().iterable(set))
                 .onItem().transform(Purchase::from); // assuming you already have Purchase::from
+    }
+
+    public static Multi<Purchase> findByMinDate(MySQLPool client, LocalDateTime minDate) {
+        String sql = "SELECT * FROM Purchases WHERE DateTime >= ?";
+        String formattedDate = minDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        return client.preparedQuery(sql)
+                .execute(Tuple.of(formattedDate))
+                .onItem()
+                .transformToMulti(set -> Multi.createFrom().iterable(set))
+                .onItem()
+                .transform(Purchase::from);
     }
 
     // Getters and Setters

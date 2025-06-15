@@ -14,6 +14,8 @@ import jakarta.ws.rs.core.Response.ResponseBuilder;
 import org.acme.model.Topic;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import java.net.URI;
+import java.time.LocalDateTime;
+
 import io.quarkus.runtime.StartupEvent;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
@@ -90,5 +92,13 @@ public class KafkaProvisioningResource {
                     }
                 });
     }
+
+    @GET
+    @Path("{months}/recent")
+    public Multi<Purchase> getRecentPurchases(@PathParam("months") int months) {
+        LocalDateTime threshold = LocalDateTime.now().minusMonths(months);
+        return Purchase.findByMinDate(client, threshold);
+}
+
 
 }
